@@ -95,6 +95,14 @@ module JSONAPI
         data
       end
 
+      def id_for_attribute(attribute_name, object, related_object_serializer)
+        if object.respond_to?("#{attribute_name}_id".to_sym)
+          id = object.send("#{attribute_name}_id").to_s
+        else
+          id = related_object_serializer.id.to_s
+        end
+      end
+
       def relationships
         data = {}
         # Merge in data for has_one relationships.
@@ -122,7 +130,7 @@ module JSONAPI
               related_object_serializer = JSONAPI::Serializer.find_serializer(object, @options)
               data[formatted_attribute_name]['data'] = {
                 'type' => related_object_serializer.type.to_s,
-                'id' => related_object_serializer.id.to_s,
+                'id' => id_for_attribute(attribute_name, object, related_object_serializer),
               }
             end
           end
@@ -153,7 +161,7 @@ module JSONAPI
               related_object_serializer = JSONAPI::Serializer.find_serializer(obj, @options)
               data[formatted_attribute_name]['data'] << {
                 'type' => related_object_serializer.type.to_s,
-                'id' => related_object_serializer.id.to_s,
+                'id' => id_for_attribute(attribute_name, object, related_object_serializer),
               }
             end
           end
